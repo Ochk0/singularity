@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Singularity — Interactive Black Hole Sandbox</title>
+    <style>
+      :root { color-scheme: dark; }
+      html, body { margin: 0; padding: 0; height: 100%; background: #000; overflow: hidden; font-family: -apple-system, ui-sans-serif, system-ui, sans-serif; color: #cfd8ff; }
+      #app { position: fixed; inset: 0; }
+      canvas { display: block; width: 100%; height: 100%; cursor: crosshair; }
+
+      /* top toolbar */
+      #toolbar { position: fixed; top: 14px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; padding: 6px; background: rgba(8, 10, 22, 0.7); border: 1px solid rgba(120, 140, 220, 0.25); border-radius: 10px; backdrop-filter: blur(8px); z-index: 20; }
+      #toolbar button { border: 1px solid rgba(120, 140, 220, 0.25); background: transparent; color: #bcd; font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; padding: 7px 14px; border-radius: 6px; cursor: pointer; transition: all 120ms ease; font-weight: 500; }
+      #toolbar button:hover { background: rgba(90, 120, 200, 0.15); color: #dff; }
+      #toolbar button.active { background: linear-gradient(180deg, rgba(120, 150, 255, 0.35), rgba(90, 110, 200, 0.22)); color: #fff; border-color: rgba(160, 190, 255, 0.7); box-shadow: 0 0 14px rgba(140, 170, 255, 0.35); }
+      #toolbar .sep { width: 1px; background: rgba(120, 140, 220, 0.2); margin: 2px 4px; }
+      #toolbar .chip { font-size: 10px; letter-spacing: 0.18em; padding: 7px 10px; color: #8ab; text-transform: uppercase; user-select: none; }
+
+      #hud { position: fixed; left: 16px; bottom: 14px; pointer-events: none; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.55; line-height: 1.7; text-shadow: 0 0 6px rgba(80,120,255,0.35); z-index: 10; }
+      #hud b { color: #8cc; font-weight: 600; letter-spacing: 0.1em; }
+
+      #physhud { position: fixed; right: 16px; bottom: 14px; pointer-events: none; font-size: 11px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: rgba(200, 220, 255, 0.78); background: rgba(8, 10, 22, 0.55); border: 1px solid rgba(120, 140, 220, 0.22); border-radius: 8px; padding: 8px 12px; min-width: 170px; backdrop-filter: blur(6px); z-index: 10; line-height: 1.55; }
+      #physhud div { display: flex; justify-content: space-between; gap: 16px; }
+      #physhud .k { opacity: 0.55; letter-spacing: 0.05em; }
+      #physhud .v { color: #bce; }
+
+      #splash { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: radial-gradient(ellipse at center, #090a18 0%, #000 65%); z-index: 30; transition: opacity 0.8s ease; }
+      #splash .title { font-size: 42px; letter-spacing: 0.55em; font-weight: 200; color: #eaf; text-shadow: 0 0 24px rgba(140,140,255,0.6); margin-right: -0.55em; }
+      #splash .sub { position: absolute; bottom: 24%; font-size: 11px; letter-spacing: 0.4em; opacity: 0.5; }
+      #splash.hidden { opacity: 0; pointer-events: none; }
+
+      .lil-gui { --background-color: rgba(8, 10, 22, 0.78) !important; --widget-color: rgba(30, 40, 80, 0.6) !important; --focus-color: #6af !important; --text-color: #cfd8ff !important; --title-background-color: rgba(20, 24, 50, 0.85) !important; font-size: 11px !important; letter-spacing: 0.04em; }
+
+      #toast { position: fixed; bottom: 26%; left: 50%; transform: translateX(-50%) translateY(8px); padding: 8px 18px; background: rgba(10, 14, 28, 0.75); border: 1px solid rgba(130, 170, 255, 0.3); border-radius: 8px; font-size: 11px; letter-spacing: 0.28em; text-transform: uppercase; color: #cfe; backdrop-filter: blur(6px); opacity: 0; pointer-events: none; transition: opacity 220ms ease, transform 220ms ease; z-index: 25; }
+      #toast.show { opacity: 0.92; transform: translateX(-50%) translateY(0); }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <div id="toolbar">
+      <button data-mode="view" class="active">View <span style="opacity:0.5">V</span></button>
+      <button data-mode="matter">Matter <span style="opacity:0.5">1</span></button>
+      <button data-mode="hole">Hole <span style="opacity:0.5">2</span></button>
+      <button data-mode="star">Star ☄ <span style="opacity:0.5">3</span></button>
+      <div class="sep"></div>
+      <button id="btn-cinema">Cinema <span style="opacity:0.5">C</span></button>
+      <div class="sep"></div>
+      <span class="chip">preset</span>
+      <button data-preset="solo" class="active">Solo</button>
+      <button data-preset="binary">Binary</button>
+      <button data-preset="tidal">Tidal Feast</button>
+      <button data-preset="void">Quiet Void</button>
+      <div class="sep"></div>
+      <span class="chip">chaos</span>
+      <button data-preset="three-body">3-Body</button>
+      <button data-preset="figure-eight">Figure-8</button>
+      <button data-preset="n-body">N-Body</button>
+    </div>
+
+    <div id="hud">
+      <div><b>drag</b> orbit · <b>scroll</b> zoom</div>
+      <div><b>V</b> view · <b>1/2/3</b> matter/hole/star · <b>C</b> cinema · <b>esc</b> back to view</div>
+    </div>
+
+    <div id="physhud"></div>
+
+    <div id="splash">
+      <div class="title">SINGULARITY</div>
+      <div class="sub">click anywhere to enter</div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
