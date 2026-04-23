@@ -17,11 +17,13 @@ void main() {
   vec2 uv = vUv;
   vec2 d = uv - 0.5;
 
-  // radial chromatic aberration
-  float caStrength = uCAmount * (0.6 + dot(d, d) * 2.5);
+  // radial chromatic aberration: zero at screen center, grows outward so
+  // the bright photon ring near center reads clean instead of rainbow-fringed.
+  float r2 = dot(d, d);
+  float caStrength = uCAmount * r2 * 2.0;
   vec2 dir = normalize(d + 1e-5);
-  vec2 offR = dir * caStrength * 0.0025;
-  vec2 offB = -dir * caStrength * 0.0025;
+  vec2 offR = dir * caStrength * 0.0015;
+  vec2 offB = -dir * caStrength * 0.0015;
 
   float r = texture2D(tDiffuse, uv + offR).r;
   float g = texture2D(tDiffuse, uv).g;
