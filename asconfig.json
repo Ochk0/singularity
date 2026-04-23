@@ -1,0 +1,26 @@
+{
+  "targets": {
+    "release": {
+      "outFile": "src/wasm/matter.wasm",
+      "textFile": "src/wasm/matter.wat",
+      "optimizeLevel": 3,
+      "shrinkLevel": 0,
+      "converge": false,
+      "noAssert": true
+    },
+    "debug": {
+      "outFile": "src/wasm/matter.wasm",
+      "textFile": "src/wasm/matter.wat",
+      "debug": true,
+      "sourceMap": true
+    }
+  },
+  "options": {
+    "bindings": "raw",
+    "runtime": "stub",
+    "exportRuntime": false,
+    "importMemory": false,
+    "initialMemory": 80,
+    "maximumMemory": 80
+  }
+}

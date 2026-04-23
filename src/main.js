@@ -53,9 +53,9 @@ bhMesh.renderOrder = -1000;
 scene.add(bhMesh);
 
 // ------------------------------------------------------------------
-// particles + trails
+// particles + trails (physics lives in wasm/matter.ts)
 // ------------------------------------------------------------------
-const matter = new MatterStream();
+const matter = await MatterStream.create();
 scene.add(matter.trails);
 scene.add(matter.points);
 
